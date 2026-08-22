@@ -26,7 +26,7 @@ The product is not an AI chatbot. The AI is responsible for reasoning and choosi
 | 2  | Product/storefront data      | Phase 1    | done   |
 | 3  | Razorpay payment flow        | Phase 1    | done   |
 | 4  | Revenue-at-risk intelligence | Phase 2    | done   |
-| 5  | AI recovery agent            | Phase 3    | open   |
+| 5  | AI recovery agent            | Phase 3    | done   |
 | 6  | MCP recovery tools           | Phase 4    | open   |
 | 7  | Recovery policy engine       | Phase 4    | open   |
 | 8  | Trigger.dev workflows        | Phase 5    | open   |
@@ -417,13 +417,13 @@ The agent determines:
 
 ### Build checklist
 
-* [ ] Recovery agent
-* [ ] Structured agent state
-* [ ] Failure diagnosis
-* [ ] Intervention selection
-* [ ] Recovery probability
-* [ ] Human-readable explanation
-* [ ] Error handling
+* [x] Recovery agent
+* [x] Structured agent state
+* [x] Failure diagnosis
+* [x] Intervention selection
+* [x] Recovery probability
+* [x] Human-readable explanation
+* [x] Error handling
 
 ### Showcase
 
