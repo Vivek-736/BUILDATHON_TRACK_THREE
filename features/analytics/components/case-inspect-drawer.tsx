@@ -5,20 +5,25 @@ import Image from "next/image";
 import { 
   X, 
   AlertOctagon, 
-  Sparkles,  
+  Sparkles, 
+  ShieldCheck, 
   User, 
   ShoppingBag, 
   Activity, 
   Zap,
   CheckCircle2,
   Cpu,
-  ShieldAlert
+  ShieldAlert,
+  RefreshCw,
+  FileCheck
 } from "lucide-react";
 import type { RecoveryDiagnosis } from "@/features/recovery/services/agent-service";
+import type { PolicyEvaluationResult } from "@/features/policies/services/policy-engine";
 
 interface CaseInspectDrawerProps {
   paymentId: string | null;
   onClose: () => void;
+  onCaseRecovered?: () => void;
 }
 
 interface CaseDetail {
@@ -62,17 +67,28 @@ interface CaseDetail {
   }>;
 }
 
-export function CaseInspectDrawer({ paymentId, onClose }: CaseInspectDrawerProps) {
+export function CaseInspectDrawer({
+  paymentId,
+  onClose,
+  onCaseRecovered,
+}: CaseInspectDrawerProps) {
   const [caseData, setCaseData] = useState<CaseDetail | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDiagnosing, setIsDiagnosing] = useState(false);
   const [aiDiagnosis, setAiDiagnosis] = useState<RecoveryDiagnosis | null>(null);
+  const [policyEvaluation, setPolicyEvaluation] = useState<PolicyEvaluationResult | null>(null);
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [executionMessage, setExecutionMessage] = useState<string | null>(null);
+  const [isRecoveredSuccessfully, setIsRecoveredSuccessfully] = useState(false);
   const [diagnosisError, setDiagnosisError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!paymentId) {
       setCaseData(null);
       setAiDiagnosis(null);
+      setPolicyEvaluation(null);
+      setExecutionMessage(null);
+      setIsRecoveredSuccessfully(false);
       setDiagnosisError(null);
       return;
     }
@@ -81,11 +97,18 @@ export function CaseInspectDrawer({ paymentId, onClose }: CaseInspectDrawerProps
       try {
         setIsLoading(true);
         setAiDiagnosis(null);
+        setPolicyEvaluation(null);
+        setExecutionMessage(null);
+        setIsRecoveredSuccessfully(false);
         setDiagnosisError(null);
+
         const res = await fetch(`/api/dashboard/cases/${paymentId}`);
         const data = await res.json();
         if (data.success && data.caseData) {
           setCaseData(data.caseData);
+          if (data.caseData.status === "captured" || data.caseData.status === "recovered") {
+            setIsRecoveredSuccessfully(true);
+          }
         }
       } catch (err) {
         console.error("Failed to load case details:", err);
@@ -111,6 +134,21 @@ export function CaseInspectDrawer({ paymentId, onClose }: CaseInspectDrawerProps
       const data = await res.json();
       if (data.success && data.diagnosis) {
         setAiDiagnosis(data.diagnosis);
+
+        // Pre-evaluate with Policy Engine
+        const policyRes = await fetch("/api/policies/evaluate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            paymentId,
+            proposedAction: data.diagnosis.recommendedAction,
+          }),
+        });
+
+        const policyData = await policyRes.json();
+        if (policyData.success && policyData.evaluation) {
+          setPolicyEvaluation(policyData.evaluation);
+        }
       } else {
         setDiagnosisError(data.error || "Recovery analysis couldn't be completed.");
       }
@@ -119,6 +157,38 @@ export function CaseInspectDrawer({ paymentId, onClose }: CaseInspectDrawerProps
       setDiagnosisError("Recovery analysis couldn't be completed. Please retry.");
     } finally {
       setIsDiagnosing(false);
+    }
+  };
+
+  const handleExecuteRecovery = async () => {
+    if (!paymentId || !aiDiagnosis) return;
+    try {
+      setIsExecuting(true);
+      const res = await fetch("/api/recovery/execute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paymentId,
+          proposedAction: aiDiagnosis.recommendedAction,
+          simulateSuccess: true,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setIsRecoveredSuccessfully(true);
+        setExecutionMessage(data.result?.message || "Payment recovered successfully!");
+        if (onCaseRecovered) {
+          onCaseRecovered();
+        }
+      } else {
+        setExecutionMessage(data.result?.message || "Execution stopped by policy engine.");
+      }
+    } catch (err) {
+      console.error("Execution failed:", err);
+      setExecutionMessage("Failed to execute recovery action.");
+    } finally {
+      setIsExecuting(false);
     }
   };
 
@@ -166,7 +236,22 @@ export function CaseInspectDrawer({ paymentId, onClose }: CaseInspectDrawerProps
               <div className="p-8 text-center text-gray-400">Case details not found</div>
             ) : (
               <>
-                {/* 1. Value at Risk & Calibrated Probability Card */}
+                {/* Success Banner if Recovered */}
+                {isRecoveredSuccessfully && (
+                  <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3">
+                    <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" />
+                    <div>
+                      <h4 className="text-xs font-bold text-emerald-900">
+                        {executionMessage || "Revenue Recovered & Captured!"}
+                      </h4>
+                      <p className="text-[11px] text-emerald-700">
+                        ₹{caseData.amountNum.toLocaleString("en-IN")} confirmed captured. Financial audit event logged.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* 1. Value at Risk Card */}
                 <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-between">
                   <div>
                     <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">
@@ -175,8 +260,8 @@ export function CaseInspectDrawer({ paymentId, onClose }: CaseInspectDrawerProps
                     <span className="text-2xl font-extrabold text-gray-900 font-mono mt-0.5 block">
                       ₹{caseData.amountNum.toLocaleString("en-IN")}
                     </span>
-                    <span className="text-[10px] text-red-600 font-medium">
-                      Status: {caseData.status} • Order #{caseData.orderId.slice(-8)}
+                    <span className="text-[10px] text-gray-500 font-medium">
+                      Status: <strong className={isRecoveredSuccessfully ? "text-emerald-700" : "text-orange-600"}>{isRecoveredSuccessfully ? "Recovered" : "At Risk"}</strong> • Order #{caseData.orderId.slice(-8)}
                     </span>
                   </div>
 
@@ -191,7 +276,7 @@ export function CaseInspectDrawer({ paymentId, onClose }: CaseInspectDrawerProps
                   </div>
                 </div>
 
-                {/* 2. AI Reasoning / Diagnosis Showcase */}
+                {/* 2. AI Reasoning & Diagnosis Section */}
                 {isDiagnosing ? (
                   <div className="p-5 bg-orange-50/70 border border-orange-200 rounded-xl space-y-3 animate-pulse">
                     <div className="flex items-center gap-2 text-[#ea580c] font-bold text-xs">
@@ -203,11 +288,11 @@ export function CaseInspectDrawer({ paymentId, onClose }: CaseInspectDrawerProps
                     </p>
                   </div>
                 ) : aiDiagnosis ? (
-                  <div className="p-4 sm:p-5 bg-linear-to-b from-orange-50/50 to-white border border-orange-200 rounded-xl space-y-3 shadow-xs">
+                  <div className="p-4 sm:p-5 bg-linear-to-b from-orange-50/50 to-white border border-orange-200 rounded-xl space-y-4 shadow-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-extrabold text-[#ea580c] flex items-center gap-1.5 uppercase tracking-wider">
                         <Sparkles className="w-4 h-4 fill-current" />
-                        AI Recovery Diagnosis (NVIDIA Nemotron)
+                        AI Diagnosis (Nemotron)
                       </span>
                       <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                         {aiDiagnosis.confidenceScore}% Confidence
@@ -224,12 +309,12 @@ export function CaseInspectDrawer({ paymentId, onClose }: CaseInspectDrawerProps
                       </p>
                     </div>
 
-                    {/* Recommended Action & Delay */}
+                    {/* Recommended Action & Timing */}
                     <div className="grid grid-cols-2 gap-2 pt-1">
                       <div className="p-2.5 rounded-lg bg-white border border-gray-200">
                         <span className="block text-[10px] text-gray-500 font-medium">Recommended Action</span>
                         <span className="block text-xs font-bold text-gray-900 capitalize mt-0.5">
-                          {aiDiagnosis.recommendedAction.replace(/_/g, " ")}
+                          {(aiDiagnosis.recommendedAction || "retry_payment").replace(/_/g, " ")}
                         </span>
                       </div>
 
@@ -241,8 +326,8 @@ export function CaseInspectDrawer({ paymentId, onClose }: CaseInspectDrawerProps
                       </div>
                     </div>
 
-                    {/* Plain English Rationale */}
-                    <div className="space-y-1 pt-1">
+                    {/* Rationale */}
+                    <div className="space-y-1">
                       <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
                         Reasoning & Rationale
                       </span>
@@ -251,13 +336,35 @@ export function CaseInspectDrawer({ paymentId, onClose }: CaseInspectDrawerProps
                       </p>
                     </div>
 
-                    {/* Risk summary */}
-                    <div className="flex items-center justify-between text-[11px] text-gray-500 pt-1">
-                      <span>Customer Profile: <strong className="text-gray-800">{aiDiagnosis.riskAssessment}</strong></span>
-                      <span className="text-emerald-600 font-semibold flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" /> Policy Compliant
-                      </span>
-                    </div>
+                    {/* 3. Deterministic Policy Gate Box */}
+                    {policyEvaluation && (
+                      <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                            <ShieldCheck className="w-4 h-4 text-[#ea580c]" />
+                            Deterministic Policy Engine Gate
+                          </span>
+                          <span
+                            className={`text-[10px] font-extrabold px-2 py-0.5 rounded border ${
+                              policyEvaluation.decision === "ALLOWED"
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                : "bg-red-50 text-red-700 border-red-200"
+                            }`}
+                          >
+                            {policyEvaluation.decision === "ALLOWED" ? "ALLOWED ✓" : "REJECTED ✕"}
+                          </span>
+                        </div>
+
+                        <p className="text-[11px] text-gray-600 leading-relaxed">
+                          {policyEvaluation.reason}
+                        </p>
+
+                        <div className="grid grid-cols-2 gap-2 text-[10px] text-gray-500 pt-1 border-t border-gray-200">
+                          <span>Max Auto Cap: <strong>₹{policyEvaluation.maxAmountCap.toLocaleString("en-IN")}</strong></span>
+                          <span>Retries Allowed: <strong>{policyEvaluation.maxRetries}</strong></span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : diagnosisError ? (
                   <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-xs space-y-2">
@@ -293,7 +400,7 @@ export function CaseInspectDrawer({ paymentId, onClose }: CaseInspectDrawerProps
                   </div>
                 )}
 
-                {/* 3. Failure Diagnostic Reason */}
+                {/* 4. Failure Diagnostic Reason */}
                 <div className="space-y-2">
                   <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
                     <Activity className="w-3.5 h-3.5 text-[#ea580c]" />
@@ -303,7 +410,7 @@ export function CaseInspectDrawer({ paymentId, onClose }: CaseInspectDrawerProps
                     <div className="flex items-center justify-between">
                       <span className="text-gray-500">Failure Category:</span>
                       <span className="font-semibold text-gray-900 capitalize px-2 py-0.5 rounded bg-gray-100 border border-gray-200">
-                        {caseData.failureCategory.replace(/_/g, " ")}
+                        {(caseData.failureCategory || "other").replace(/_/g, " ")}
                       </span>
                     </div>
 
@@ -321,7 +428,7 @@ export function CaseInspectDrawer({ paymentId, onClose }: CaseInspectDrawerProps
                   </div>
                 </div>
 
-                {/* 4. Customer Profile & Historical Value */}
+                {/* 5. Customer Profile & Historical Value */}
                 <div className="space-y-2">
                   <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5 text-blue-500" />
@@ -345,7 +452,7 @@ export function CaseInspectDrawer({ paymentId, onClose }: CaseInspectDrawerProps
                   </div>
                 </div>
 
-                {/* 5. Order Items Summary */}
+                {/* 6. Order Items Summary */}
                 <div className="space-y-2">
                   <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
                     <ShoppingBag className="w-3.5 h-3.5 text-gray-500" />
@@ -376,7 +483,7 @@ export function CaseInspectDrawer({ paymentId, onClose }: CaseInspectDrawerProps
             )}
           </div>
 
-          {/* Footer Action */}
+          {/* Footer Action Strip */}
           <div className="p-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
             <button
               onClick={onClose}
@@ -385,7 +492,12 @@ export function CaseInspectDrawer({ paymentId, onClose }: CaseInspectDrawerProps
               Close
             </button>
 
-            {!aiDiagnosis ? (
+            {isRecoveredSuccessfully ? (
+              <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-bold">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Recovered & Captured</span>
+              </div>
+            ) : !aiDiagnosis ? (
               <button
                 onClick={handleRunAiDiagnosis}
                 disabled={isDiagnosing}
@@ -394,10 +506,28 @@ export function CaseInspectDrawer({ paymentId, onClose }: CaseInspectDrawerProps
                 <Zap className="w-3.5 h-3.5 text-[#ea580c] fill-current" />
                 <span>{isDiagnosing ? "Analyzing..." : "Diagnose with AI Agent"}</span>
               </button>
+            ) : policyEvaluation?.decision === "ALLOWED" ? (
+              <button
+                onClick={handleExecuteRecovery}
+                disabled={isExecuting}
+                className="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-xs font-bold text-white flex items-center gap-1.5 transition shadow-xs disabled:opacity-50"
+              >
+                {isExecuting ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Executing Tool...</span>
+                  </>
+                ) : (
+                  <>
+                    <FileCheck className="w-3.5 h-3.5" />
+                    <span>Execute Approved Recovery</span>
+                  </>
+                )}
+              </button>
             ) : (
-              <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-bold">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Diagnosis Ready for Policy Engine</span>
+              <div className="flex items-center gap-1 text-xs text-red-600 font-semibold">
+                <ShieldAlert className="w-4 h-4" />
+                <span>Policy Gated (Rejected)</span>
               </div>
             )}
           </div>
