@@ -25,7 +25,7 @@ The product is not an AI chatbot. The AI is responsible for reasoning and choosi
 | 1  | Project foundation           | Foundation | done   |
 | 2  | Product/storefront data      | Phase 1    | done   |
 | 3  | Razorpay payment flow        | Phase 1    | done   |
-| 4  | Revenue-at-risk intelligence | Phase 2    | open   |
+| 4  | Revenue-at-risk intelligence | Phase 2    | done   |
 | 5  | AI recovery agent            | Phase 3    | open   |
 | 6  | MCP recovery tools           | Phase 4    | open   |
 | 7  | Recovery policy engine       | Phase 4    | open   |
@@ -368,13 +368,13 @@ Turn raw payment events into revenue opportunities.
 
 ### Build checklist
 
-* [ ] Failure classification
-* [ ] Abandoned checkout detection
-* [ ] Revenue-at-risk calculation
-* [ ] Recoverability scoring
-* [ ] Recovery probability
-* [ ] Recovery opportunity queue
-* [ ] Dashboard KPIs
+* [x] Failure classification
+* [x] Abandoned checkout detection
+* [x] Revenue-at-risk calculation
+* [x] Recoverability scoring
+* [x] Recovery probability
+* [x] Recovery opportunity queue
+* [x] Dashboard KPIs
 
 ### Showcase
 
