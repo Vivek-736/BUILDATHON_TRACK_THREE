@@ -172,7 +172,7 @@ export function OpportunityQueue({
                     {/* Failure Category */}
                     <td className="py-2.5 px-3 max-w-[140px]">
                       <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-700 border border-gray-200 capitalize truncate max-w-full">
-                        {item.failureCategory.replace(/_/g, " ")}
+                        {(item.failureCategory || "other").replace(/_/g, " ")}
                       </span>
                     </td>
 

@@ -27,13 +27,13 @@ The product is not an AI chatbot. The AI is responsible for reasoning and choosi
 | 3  | Razorpay payment flow        | Phase 1    | done   |
 | 4  | Revenue-at-risk intelligence | Phase 2    | done   |
 | 5  | AI recovery agent            | Phase 3    | done   |
-| 6  | MCP recovery tools           | Phase 4    | open   |
-| 7  | Recovery policy engine       | Phase 4    | open   |
-| 8  | Trigger.dev workflows        | Phase 5    | open   |
-| 9  | Batch recovery               | Phase 6    | open   |
-| 10 | Analytics & metrics          | Phase 6    | open   |
-| 11 | Audit trail                  | Phase 7    | open   |
-| 12 | Demo polish                  | Phase 7    | open   |
+| 6  | MCP recovery tools           | Phase 4    | done   |
+| 7  | Recovery policy engine       | Phase 4    | done   |
+| 8  | Trigger.dev workflows        | Phase 5    | done   |
+| 9  | Batch recovery               | Phase 6    | done   |
+| 10 | Analytics & metrics          | Phase 6    | done   |
+| 11 | Audit trail                  | Phase 7    | done   |
+| 12 | Demo polish                  | Phase 7    | done   |
 
 ---
 
@@ -493,12 +493,12 @@ External Action
 
 ### Build checklist
 
-* [ ] MCP tool definitions
-* [ ] Tool validation
-* [ ] Policy rules
-* [ ] Authorization gate
-* [ ] Stopping rules
-* [ ] Audit events
+* [x] MCP tool definitions
+* [x] Tool validation
+* [x] Policy rules
+* [x] Authorization gate
+* [x] Stopping rules
+* [x] Audit events
 
 ### Showcase
 
@@ -539,13 +539,13 @@ Failure → Next allowed step
 
 ### Build checklist
 
-* [ ] Recovery task
-* [ ] Delayed execution
-* [ ] Retry sequence
-* [ ] Recovery notification
-* [ ] Result handling
-* [ ] Automatic stopping
-* [ ] Workflow status UI
+* [x] Recovery task
+* [x] Delayed execution
+* [x] Retry sequence
+* [x] Recovery notification
+* [x] Result handling
+* [x] Automatic stopping
+* [x] Workflow status UI
 
 ### Showcase
 
@@ -581,12 +581,12 @@ Metrics:
 
 ### Build checklist
 
-* [ ] Batch processor
-* [ ] Trigger.dev batch workflow
-* [ ] Aggregate metrics
-* [ ] Recovery funnel
-* [ ] Failure category analytics
-* [ ] Reproducible demo dataset
+* [x] Batch processor
+* [x] Trigger.dev batch workflow
+* [x] Aggregate metrics
+* [x] Recovery funnel
+* [x] Failure category analytics
+* [x] Reproducible demo dataset
 
 ### Showcase
 
@@ -614,19 +614,19 @@ Make the system trustworthy and competition-ready.
 
 ### Build checklist
 
-* [ ] Complete audit timeline
-* [ ] AI decision explanation
-* [ ] Tool execution logs
-* [ ] Policy decisions
-* [ ] Loading states
-* [ ] Error states
-* [ ] Empty states
-* [ ] Demo reset
-* [ ] Seeded demo scenario
-* [ ] Responsive UI
-* [ ] Final visual polish
-* [ ] Architecture diagram
-* [ ] Final demo flow
+* [x] Complete audit timeline
+* [x] AI decision explanation
+* [x] Tool execution logs
+* [x] Policy decisions
+* [x] Loading states
+* [x] Error states
+* [x] Empty states
+* [x] Demo reset
+* [x] Seeded demo scenario
+* [x] Responsive UI
+* [x] Final visual polish
+* [x] Architecture diagram
+* [x] Final demo flow
 
 ### Showcase
 
