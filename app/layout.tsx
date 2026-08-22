@@ -24,10 +24,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      appearance={{
+        layout: {
+          unsafe_disableDevelopmentModeWarnings: true,
+        },
+      }}
+    >
       <html
         lang="en"
-        className={cn("h-full dark", "antialiased", jost.className)}
+        className={cn("h-full", "antialiased", jost.className)}
         suppressHydrationWarning
       >
         <body className="min-h-full flex flex-col bg-background text-foreground">
