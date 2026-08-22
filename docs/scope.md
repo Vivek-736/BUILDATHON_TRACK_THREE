@@ -22,9 +22,9 @@ The product is not an AI chatbot. The AI is responsible for reasoning and choosi
 
 | #  | Feature                      | Phase      | Status |
 | -- | ---------------------------- | ---------- | ------ |
-| 1  | Project foundation           | Foundation | open   |
-| 2  | Product/storefront data      | Phase 1    | open   |
-| 3  | Razorpay payment flow        | Phase 1    | open   |
+| 1  | Project foundation           | Foundation | done   |
+| 2  | Product/storefront data      | Phase 1    | done   |
+| 3  | Razorpay payment flow        | Phase 1    | done   |
 | 4  | Revenue-at-risk intelligence | Phase 2    | open   |
 | 5  | AI recovery agent            | Phase 3    | open   |
 | 6  | MCP recovery tools           | Phase 4    | open   |
@@ -337,16 +337,16 @@ Create the merchant world and generate believable payment events.
 
 ### Build checklist
 
-* [ ] Product catalog
-* [ ] Product detail
-* [ ] Cart
-* [ ] Checkout
-* [ ] Customer records
-* [ ] Razorpay Test Mode order creation
-* [ ] Payment verification
-* [ ] Payment webhook handling
-* [ ] Payment status persistence
-* [ ] Seed realistic historical data
+* [x] Product catalog
+* [x] Product detail
+* [x] Cart
+* [x] Checkout
+* [x] Customer records
+* [x] Razorpay Test Mode order creation
+* [x] Payment verification
+* [x] Payment webhook handling
+* [x] Payment status persistence
+* [x] Seed realistic historical data
 
 ### Showcase
 
